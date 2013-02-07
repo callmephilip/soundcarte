@@ -1,9 +1,10 @@
 // SoundCloud code
+var apiCreds = {
+  dev: {client_id: "9bee1c02578a1de5a3221134169dd2bb", redirect_uri: "http://localhost:8000/callback.html"},
+  live: {client_id: "1ace0b15cc5aa1dd79d254364fe6ba23", redirect_uri: "http://soundcarte.ponyho.st/callback.html"}
+};
 
-SC.initialize({
-  client_id: "9bee1c02578a1de5a3221134169dd2bb",
-  redirect_uri: "http://localhost:8000/callback.html",
-});
+SC.initialize(location.hostname === "localhost" ? apiCreds.dev : apiCreds.live);
 
 
 $(function() {
@@ -12,17 +13,47 @@ $(function() {
 		SC.connect(function(){
 			$('.login-form').hide();
 			setupStreams();
+      getUserData();
 		});
 	});
 });
 
+var me = {};
 
-function setupStreams(user) {
+function getUserData() {
+  SC.get('/me', function(data) {
+    me.user = data;
+    console.log('its me!', data);
+  });
+
+  SC.get('/me/followings/', {limit: 250}, function(data) {
+    me.followings = data;
+    console.log('my friends!', data);
+  });
+
+  SC.get('/me/groups/', function(data) {
+    me.groups = data;
+    console.log('my groups!', data);
+  });
+
+  SC.get('/me/favorites/', {limit: 5000},function(data) {
+    me.favorites = data;
+    me.favoritesIds = $.map(me.favorites, function(f) {
+      return f.id;
+    });
+    console.log('my favorites!', data);
+  });
+
+
+}
+
+function setupStreams() {
 	
 
 	var streams = [
     {title: 'My likes', url: '/me/favorites', randomize: true},
-    {title: 'Tracks shared to me', url: '/me/activities/tracks/exclusive'},
+    {title: 'Tracks shared to me', url: '/me/activities/tracks/exclusive', randomize: true},
+    {title: 'My friends', url: '/me/activities', randomize: true},
     {title: 'Field Recordings group', url: '/groups/8/tracks'},
     {title: 'Natalie\'s likes', url: '/users/4128493/favorites', randomize: true},
     {title: 'Boiler Room latest', url: '/users/752705/tracks'},
@@ -61,17 +92,20 @@ function displayStream(){
 	$('#carte').append($card)
 };
 
+// play start
 $(document.body).on('click', '.cover', function(e) {
   var $stream = $(this).closest('li');
   $stream.addClass('active').siblings('li').removeClass('active');
   selectStream($stream.data().streamData);
+  updateStreamStatus();
 });
 
-
+// skip button
 $(document.body).on('click', '.skip', function(e) {
   skipSound();
 });
 
+// like button
 $(document.body).on('click', '.like', function(e) {
   var track = currentStream.tracks[currentSoundNum];
   SC.put('/e1/me/track_likes/' + track.id, function(data) {
@@ -107,9 +141,12 @@ function skipSound() {
 function updateStreamStatus() {
   var $stream = $('#carte li.active');
   var track = currentStream.tracks[currentSoundNum];
+  // change the cover image
   $stream.find('.cover').attr('src', getCoverImage(track));
-
-  document.title = ['', track.title, ' by ', track.user.username].join();
+  // check if the track is in my favorites
+  $stream.find('.like').toggleClass('active', $.inArray(track.id, me.favoritesIds) >= 0);
+  // change the window title so the tab looks better
+  document.title = ['▶ ', track.title, ' by ', track.user.username].join();
 };
 
 

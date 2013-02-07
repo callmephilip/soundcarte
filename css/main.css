@@ -77,6 +77,10 @@ ul.tracks {
 	background: url('/img/icon_heart.png') top left no-repeat;
 }
 
+.like.active {
+	-webkit-filter: invert(1);
+}
+
 .controls .skip {
 	right: 0px;
 	background: url('/img/icon_skip.png') top left no-repeat;
