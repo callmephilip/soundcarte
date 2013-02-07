@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <title>SoundCarte</title>
+    <meta name="description" content="">
+
+    <script src="js/handlebars.js"></script>
+    <script src="js/audio5.min.js"></script>
+    <script src="https://connect.soundcloud.com/sdk.js"></script>
+
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+
+  </head>
+  <body>
+
+  <h1>SoundCarte</h1>
+
+  <div class="login-form">
+    <h1><button id="login">Login with SoundCloud</button></h1>
+  </div>
+
+  <ul id="carte"></ul>
+
+  <script id="stream-template" type="text/x-handlebars-template">
+    <div class="stream">
+      <div class="header"><h3>{{title}}</h3></div>
+      <div class="controls">
+        <span class="like" title="Click to save">Like</span>
+        <span class="skip" title="Skip to next">Skip</span>
+      </div>
+      <img class="cover" src="{{coverImg}}">
+      <ul class="tracks">
+        {{#each tracks}}
+        <li>{{title}}</li>
+        {{/each}}
+      </ul>
+    </div>
+</script>
+
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
