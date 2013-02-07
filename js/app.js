@@ -113,6 +113,18 @@ $(document.body).on('click', '.like', function(e) {
   })
 });
 
+$(window).on('keypress', function(event) {
+  var key = event.keyCode;
+  if (key === 32) {
+    event.preventDefault();
+    playerToggle();
+  } else if (key === 106) {
+    skipSound();
+  } else if (key === 107) {
+    skipSound(-1);
+  }
+});
+
 
 function getCoverImage(track) {
   return (track.artwork_url || track.user.avatar_url).replace('large', 't300x300');
@@ -130,8 +142,12 @@ function selectStream(streamData) {
   }
 }
 
-function skipSound() {
-  if (currentSoundNum < currentStream.tracks.length - 1) {
+function skipSound(back) {
+  if (back && currentSoundNum > 0) {
+    currentSoundNum --;
+    playerStartCurrent();
+    updateStreamStatus();
+  } else if (currentSoundNum < currentStream.tracks.length - 1) {
     currentSoundNum ++;
     playerStartCurrent();
     updateStreamStatus();
