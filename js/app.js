@@ -28,12 +28,21 @@ function getUserData() {
 
   SC.get('/me/followings/', {limit: 250}, function(data) {
     me.followings = data;
-    console.log('my friends!', data);
+    // choose an interesting friend
+    var randomLiker = autoChoose(me.followings, function(f) { return f.public_favorites_count > 10 });
+    var randomFriend = autoChoose(me.followings, function(f) { return f.track_count > 10 });
+    // somebodies likes
+    displayStream.apply({title: randomLiker.username + '\'s Likes', url: '/users/' + randomLiker.id + '/favorites'});
+    // somebodies tracks
+    displayStream.apply({title: randomFriend.username + '\'s Sounds', url: '/users/' + randomFriend.id + '/tracks'});
+    //console.log('my friends!', data);
   });
 
   SC.get('/me/groups/', function(data) {
     me.groups = data;
-    console.log('my groups!', data);
+    var randomGroup = autoChoose(me.groups);
+    displayStream.apply({title: randomGroup.name + ' Group', url: '/groups/' + randomGroup.id + '/tracks'});
+    // console.log('my groups!', data);
   });
 
   SC.get('/me/favorites/', {limit: 5000},function(data) {
@@ -41,22 +50,31 @@ function getUserData() {
     me.favoritesIds = $.map(me.favorites, function(f) {
       return f.id;
     });
-    console.log('my favorites!', data);
+    // console.log('my favorites!', data);
   });
 
 
 }
+
+function autoChoose(array, condition) {
+  var getRandom = function(a) {
+    return a[Math.floor(Math.random() * a.length)];
+  };
+  var n = getRandom(array);
+  if (condition && !condition(n)){
+    n = autoChoose(array, condition);  
+  }
+  return n;
+};
 
 function setupStreams() {
 	
 
 	var streams = [
     {title: 'My likes', url: '/me/favorites', randomize: true},
-    {title: 'Shared to me', url: '/me/activities/tracks/exclusive', randomize: true},
     {title: 'Latest sounds', url: '/me/activities', randomize: true},
-    {title: 'Field Recordings group', url: '/groups/8/tracks'},
-    {title: 'Natalie\'s likes', url: '/users/4128493/favorites', randomize: true},
-    {title: 'Boiler Room latest', url: '/users/752705/tracks'},
+    {title: 'Shared to me', url: '/me/activities/tracks/exclusive', randomize: true},
+    //{title: 'Boiler Room latest', url: '/users/752705/tracks'},
     {title: 'My sounds', url: '/me/tracks'}
   ];
 
@@ -71,6 +89,10 @@ var streamTemplate;
 
 function displayStream(){
   var streamData = this;
+  if (!streamData) {
+    return;
+  }
+
   streamTemplate = streamTemplate || Handlebars.compile($("#stream-template").html());
 
 	SC.get(streamData.url, function(data){
