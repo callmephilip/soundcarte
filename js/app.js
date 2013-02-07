@@ -52,8 +52,8 @@ function setupStreams() {
 
 	var streams = [
     {title: 'My likes', url: '/me/favorites', randomize: true},
-    {title: 'Tracks shared to me', url: '/me/activities/tracks/exclusive', randomize: true},
-    {title: 'My friends', url: '/me/activities', randomize: true},
+    {title: 'Shared to me', url: '/me/activities/tracks/exclusive', randomize: true},
+    {title: 'Latest sounds', url: '/me/activities', randomize: true},
     {title: 'Field Recordings group', url: '/groups/8/tracks'},
     {title: 'Natalie\'s likes', url: '/users/4128493/favorites', randomize: true},
     {title: 'Boiler Room latest', url: '/users/752705/tracks'},
@@ -97,7 +97,6 @@ $(document.body).on('click', '.cover', function(e) {
   var $stream = $(this).closest('li');
   $stream.addClass('active').siblings('li').removeClass('active');
   selectStream($stream.data().streamData);
-  updateStreamStatus();
 });
 
 // skip button
@@ -111,6 +110,8 @@ $(document.body).on('click', '.like', function(e) {
   SC.put('/e1/me/track_likes/' + track.id, function(data) {
     console.log('saved to your likes!', data);
   })
+  me.favoritesIds.push(track.id);
+  toggleIfLiked($(this), track);
 });
 
 $(window).on('keypress', function(event) {
@@ -126,8 +127,10 @@ $(window).on('keypress', function(event) {
 });
 
 
+var defaultImage = 'https://a2.sndcdn.com/assets/images/default/cloudx200-1ec56ce9.png';
+
 function getCoverImage(track) {
-  return (track.artwork_url || track.user.avatar_url).replace('large', 't300x300');
+  return (track.artwork_url || (track.user ? track.user.avatar_url : defaultImage)).replace('large', 't300x300');
 };
 
 // playlist order control
@@ -146,11 +149,11 @@ function skipSound(back) {
   if (back && currentSoundNum > 0) {
     currentSoundNum --;
     playerStartCurrent();
-    updateStreamStatus();
+   
   } else if (currentSoundNum < currentStream.tracks.length - 1) {
     currentSoundNum ++;
     playerStartCurrent();
-    updateStreamStatus();
+   
   }
 }
 
@@ -159,10 +162,15 @@ function updateStreamStatus() {
   var track = currentStream.tracks[currentSoundNum];
   // change the cover image
   $stream.find('.cover').attr('src', getCoverImage(track));
-  // check if the track is in my favorites
-  $stream.find('.like').toggleClass('active', $.inArray(track.id, me.favoritesIds) >= 0);
+  // like button
+  toggleIfLiked($stream.find('.like'), track);
   // change the window title so the tab looks better
-  document.title = ['▶ ', track.title, ' by ', track.user.username].join();
+  document.title = ['▶ ', track.title].join();
+};
+
+function toggleIfLiked($node, track) {
+  // check if the track is in my favorites
+  $node.toggleClass('active', $.inArray(track.id, me.favoritesIds) >= 0);
 };
 
 
@@ -179,7 +187,8 @@ function playerStartCurrent () {
   var track = currentStream.tracks[currentSoundNum];
   currenSoundInstance && currenSoundInstance.pause();
   SC.stream('/tracks/' + track.id, {
-    onfinish: skipSound
+    onfinish: skipSound,
+    onplay: updateStreamStatus
   }, function(sound){
     currenSoundInstance = sound;
     currenSoundInstance.play();
