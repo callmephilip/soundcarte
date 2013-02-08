@@ -2,12 +2,12 @@
 
 Todo
 
-store SC authorization in LocalStorage
 dont show streams that I haven't clicked for 2/3 times
 allow to follow people and show a followed user's strteam right away
 display genre of the curent track
 add iPad/iPhone support
 
+DONE store SC authorization in LocalStorage
 DONE add a nicer UI design
 DONE show different genre results stream based on week day
 DONE display the title and the user of the current track

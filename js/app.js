@@ -8,15 +8,28 @@ SC.initialize(location.hostname === "localhost" ? apiCreds.dev : apiCreds.live);
 
 
 $(function() {
+
+  var storedToken = localStorage.getItem('SC.accessToken'); 
+
+  if (storedToken) {
+    SC.accessToken(storedToken);
+    initCarte();
+  } 
+
 	$('#login').on('click', function(e){
 		console.log('click', e)
 		SC.connect(function(){
-			$('.login-form').hide();
-			setupStreams();
-      getUserData();
+      localStorage.setItem('SC.accessToken', SC.accessToken()); 
+			initCarte();
 		});
 	});
 });
+
+function initCarte() {
+  $('.login-form').hide();
+  setupStreams();
+  getUserData();
+};
 
 var me = {};
 
@@ -159,7 +172,7 @@ $(document.body).on('click', 'h1', function(e) {
   $('#current-stream').text('');
 });
 
-$(document.body).on('click', '.active h3', function(e) {
+$(document.body).on('click', '.active h3, .active .cover', function(e) {
   var streamData = $(this).closest('li').data().streamData;
   selectStream(streamData);
 });
