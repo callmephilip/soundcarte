@@ -56,8 +56,6 @@ function getUserData() {
   });
 
 
-
-
 }
 
 function autoChoose(array, condition) {
@@ -71,14 +69,34 @@ function autoChoose(array, condition) {
   return n;
 };
 
+function getGenre() {
+  var g,
+      weekday = (new Date()).getDay(),
+      weekGenres = {
+        1: ['Minimal', 'Instrumental', 'Folk-pop'],
+        2: ['Jazz', 'Piano', 'Neoclassical', 'Lounge', 'Bossa Nova'],
+        3: ['Rock', 'Indie', 'Beats', 'Alternative', 'Acoustic', 'Indie Folk'],
+        4: ['Electro', 'Jazz House', 'Nu Jazz', 'Funk', 'Hip Hop'],
+        5: ['House', 'Tech House', 'Techno', 'Trap', 'Trance', 'Juke', 'Dubstep'],
+        6: ['Ambient', 'RnB', 'Beats', 'Nu Swing', 'Pop'],
+        7: ['Folk', 'Folk Rock', 'Singer', 'Clasical', 'Soundtrack', 'Chillout']
+      };
+
+  var choices = weekGenres[weekday];
+  return choices[Math.floor(Math.random() * choices.length)];
+}
+
 function setupStreams() {
 	
+  // get a genre for today
+  var genre = getGenre();
 
 	var streams = [
     {title: 'My likes', url: '/me/favorites', randomize: true, params: {limit: 250}},
     {title: 'My Next Stream', url: '/e1/me/stream', randomize: true, params: {limit: 50}},
     {title: 'My friends likes', url: '/me/activities', randomize: true, params: {limit: 100}, parser: function(n) { return n.type === "favoriting" ? n.origin.track : undefined; }},
-    {title: 'Shared to me', url: '/me/activities/tracks/exclusive', randomize: true},
+    {title: 'Best of ' + genre, url: '/search/sounds', randomize: true, params: { q: '*', 'filter.genre_or_tag': genre.toLowerCase(), limit: 20, linked_partitioning: 1}, parser: function(n) { return n.kind === "track" ? n : undefined; }},
+    //{title: 'Shared to me', url: '/me/activities/tracks/exclusive', randomize: true},
     //{title: 'Boiler Room latest', url: '/users/752705/tracks'},
     {title: 'My sounds', url: '/me/tracks'}
   ];
@@ -108,7 +126,7 @@ function displayStream(){
 		streamData.tracks = data.collection ? $.map(data.collection, streamData.parser || standardParser) : data;
     // shuffle if needed
     if (streamData.randomize) {
-      streamData.tracks = streamData.tracks.sort(function() { return 0.5 - Math.random();});
+      streamData.tracks = randomize(streamData.tracks);
     }
     // get a cover image
     streamData.coverImg = getCoverImage(streamData.tracks[0]);
@@ -155,6 +173,9 @@ $(window).on('keypress', function(event) {
   }
 });
 
+function randomize(array) {
+  return array.sort(function() { return 0.5 - Math.random();})
+};
 
 var defaultImage = 'https://a2.sndcdn.com/assets/images/default/cloudx200-1ec56ce9.png';
 
