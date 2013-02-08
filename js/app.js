@@ -130,6 +130,7 @@ function displayStream(){
     }
     // get a cover image
     streamData.coverImg = getCoverImage(streamData.tracks[0]);
+    streamData.coverImg500 = getCoverImage(streamData.tracks[0], 't500x500');
     // re-render the card
     $card.html(streamTemplate(streamData));
   });
@@ -140,19 +141,44 @@ function displayStream(){
 };
 
 // play start
-$(document.body).on('click', '.cover', function(e) {
+$(document.body).on('click', '.play', function(e) {
+  e.preventDefault();
   var $stream = $(this).closest('li');
-  $stream.addClass('active').siblings('li').removeClass('active');
-  selectStream($stream.data().streamData);
+  var streamData = $stream.data().streamData;
+  $stream
+    .addClass('active')
+    .siblings('li')
+      .removeClass('active');
+  selectStream(streamData);
 });
+
+// back to overview button
+$(document.body).on('click', 'h1', function(e) {
+  e.preventDefault();
+  $(document.body).toggleClass('selected', false);
+  $('#current-stream').text('');
+});
+
+$(document.body).on('click', '.active h3', function(e) {
+  var streamData = $(this).closest('li').data().streamData;
+  selectStream(streamData);
+});
+
 
 // skip button
 $(document.body).on('click', '.skip', function(e) {
+  e.preventDefault();
   skipSound();
+});
+
+$(document.body).on('click', '.back', function(e) {
+  e.preventDefault();
+  skipSound(true);
 });
 
 // like button
 $(document.body).on('click', '.like', function(e) {
+  e.preventDefault();
   var track = currentStream.tracks[currentSoundNum];
   SC.put('/e1/me/track_likes/' + track.id, function(data) {
     console.log('saved to your likes!', data);
@@ -179,20 +205,22 @@ function randomize(array) {
 
 var defaultImage = 'https://a2.sndcdn.com/assets/images/default/cloudx200-1ec56ce9.png';
 
-function getCoverImage(track) {
-  return (track.artwork_url || (track.user ? track.user.avatar_url : defaultImage)).replace('large', 't300x300');
+function getCoverImage(track, format) {
+  return (track.artwork_url || (track.user ? track.user.avatar_url : defaultImage)).replace('large', format || 't300x300');
 };
 
 // playlist order control
 var currentStream, currentSoundNum;
 function selectStream(streamData) {
   if (currentStream === streamData) {
-    playerToggle();
+    //playerToggle();
   } else {
     currentStream = streamData;
     currentSoundNum = 0;
     playerStartCurrent();
   }
+  $(document.body).addClass('selected');
+  $('#current-stream').text(streamData.title);
 }
 
 function skipSound(back) {
@@ -211,6 +239,15 @@ function updateStreamStatus() {
   var track = currentStream.tracks[currentSoundNum];
   // change the cover image
   $stream.find('.cover').attr('src', getCoverImage(track));
+  $stream.find('.cover-big').attr('src', getCoverImage(track, 't500x500'));
+  
+  if (track.user) {
+    $stream.find('.user').attr('href', track.user.permalink_url).find('h2').text(track.user.username);
+  } else {
+    $stream.find('.user').attr('href', '').find('h2').text('');
+  }
+
+  $stream.find('.title').attr('href', track.permalink_url).find('h2').text(track.title);
   // like button
   toggleIfLiked($stream.find('.like'), track);
   // change the window title so the tab looks better
@@ -225,7 +262,12 @@ function updateTitle(playing) {
 
 function toggleIfLiked($node, track) {
   // check if the track is in my favorites
-  $node.toggleClass('active', $.inArray(track.id, me.favoritesIds) >= 0);
+  var isLiked = $.inArray(track.id, me.favoritesIds) >= 0;
+  if (isLiked) {
+    $node.toggleClass('active', true).find('h2').text('Liked');
+  } else {
+    $node.toggleClass('active', false).find('h2').text('Like');
+  }
 };
 
 

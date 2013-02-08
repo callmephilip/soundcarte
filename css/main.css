@@ -1,16 +1,25 @@
 
 h1 {
-	margin: 10px 20px;
+	margin: 10px 20px 50px 20px;
+	cursor: pointer;
 }
 
+h1 span{
+	color: #fff;
+	background-color: #000;
+	padding: 5px 10px;
+	margin: 0 5px;
+	display: none;
+}
 
 li {
 	list-style-type: none;
 }
 
+
 .stream {
-	width: 300px;
-	height: 300px;
+	width: 250px;
+	height: 250px;
 	float: left;
 	overflow: hidden;
 	position: relative;
@@ -33,14 +42,66 @@ li {
 	background-color: rgba(0,0,0,.7);
 }
 
+.stream .play {
+	position: absolute;
+	z-index: 100;
+	top: 0;
+	left: 0;
+	width: 250px;
+	height: 250px;
+	opacity: .5;
+}
+
+.stream:hover .play {
+	background: url('/img/play_hover.png') center center no-repeat;
+}
+
+.active .play {
+	display: none;
+}
+
+.selected h1 span {
+	display: inline-block;
+}
+
+.selected #carte li {
+	display: none;
+}
+
+.selected #carte li.active {
+	display: block;
+}
+
+.selected #carte li.active .stream {
+	height: 500px;
+	width: 980px;
+	float: none;
+}
+
+.selected #carte .cover-big {
+	display: block;
+}
+
+.selected .stream h3 {
+	display: none;
+}
+
 .active h3 {
 	background-color: rgba(256,20,0,.7);
 }
 
 .stream .cover {
 	position: absolute;
-	width: 100%;
-	height: 100%;
+	width: 250px;
+	height: 250px%;
+	z-index: 5;
+}
+
+.stream .cover-big {
+	display: none;
+	position: absolute;
+	width: 500px;
+	height: 500px;
 	z-index: 5;
 }
 
@@ -48,12 +109,35 @@ ul.tracks {
 	display: none;
 }
 
+.info {
+	position: absolute;
+	left: 520px;
+	top: 100px;
+	display: none;
+}
+
+.info a {
+	color: #000;
+}
+
+.info a.user {
+	color: #999;
+}
+
+.info a.user h2 {
+	font-weight: normal;
+}
+
+.selected .info {
+	display: block;
+}
+
 .controls {
 	position: absolute;
 	display: none;
-	top: 120px;
-	width: 200px;
-	height: 30px;
+	left: 520px;
+	width: 100px;
+	height: 60px;
 	z-index: 30;
 }
 
@@ -66,22 +150,38 @@ ul.tracks {
 .controls span {
 	display: block;
 	position: absolute;
-	height: 32px;
-	width: 32px;
+	height: 42px;
+	width: 42px;
 	cursor: pointer;
 	text-indent: -5000px;
+	z-index: 35;
 }
 
-.controls .like {
-	left: 80px;
-	background: url('/img/icon_heart.png') top left no-repeat;
+.like {
+	left: 520px;
+	bottom: 10px;
+	height: 60px;
+	width: 60px;
+	padding-left: 65px;
+	display: none;
+	position: absolute;
+	background: url('/img/like_passive.png') top left no-repeat;
+}
+
+.selected .like {
+	display: block;
 }
 
 .like.active {
-	-webkit-filter: invert(1);
+	background-image: url('/img/like_active.png');
 }
 
 .controls .skip {
 	right: 0px;
-	background: url('/img/icon_skip.png') top left no-repeat;
+	background: url('/img/skipf.png') center center no-repeat;
+}
+
+
+.controls .back {
+	background: url('/img/skipb.png') center center no-repeat;
 }

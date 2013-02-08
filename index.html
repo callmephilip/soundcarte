@@ -14,7 +14,7 @@
   </head>
   <body>
 
-  <h1>SoundCarte</h1>
+  <h1>SoundCarte<span id="current-stream"></span></h1>
 
   <div class="login-form">
     <h1><button id="login">Login with SoundCloud</button></h1>
@@ -26,15 +26,24 @@
     <div class="stream">
       <div class="header"><h3>{{title}}</h3></div>
       <div class="controls">
-        <span class="like" title="Click to save">Like</span>
+        <span class="back" title="Skip back">Back</span>
         <span class="skip" title="Skip to next">Skip</span>
       </div>
+      <span class="like" title="Click to save"><h2>Like</h2></span>
+      <div class="info">
+        <a href="" title="Go to user"  class="user" target="_blank"><h2></h2></a>
+        <a href="" title="Go to track"  class="title" target="_blank"><h2></h2></a>
+      </div>
+
       <img class="cover" src="{{coverImg}}">
+      <img class="cover-big" src="{{coverImg500}}">
       <ul class="tracks">
         {{#each tracks}}
         <li>{{title}}</li>
         {{/each}}
       </ul>
+      <div class="play"></div>
+
     </div>
 </script>
 
