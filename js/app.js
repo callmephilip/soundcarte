@@ -37,21 +37,25 @@ function getUserData() {
     displayStream.apply({title: randomFriend.username + '\'s Sounds', url: '/users/' + randomFriend.id + '/tracks'});
     //console.log('my friends!', data);
   });
-
+  // get all my groups
   SC.get('/me/groups/', function(data) {
     me.groups = data;
     var randomGroup = autoChoose(me.groups);
     displayStream.apply({title: randomGroup.name + ' Group', url: '/groups/' + randomGroup.id + '/tracks'});
     // console.log('my groups!', data);
   });
-
-  SC.get('/me/favorites/', {limit: 5000},function(data) {
-    me.favorites = data;
-    me.favoritesIds = $.map(me.favorites, function(f) {
-      return f.id;
-    });
-    // console.log('my favorites!', data);
+  // get ids of all my favorites
+  SC.get('/e1/me/track_likes/ids', {limit: 5000, linked_partitioning: 1},function(data) {
+    me.favoritesIds = data.collection;
+    console.log('my favorites!', data);
   });
+
+  SC.get('/me/activities', {limit: 250},function(data) {
+    //me.favoritesIds = data.collection;
+    console.log('my classic stream!', data);
+  });
+
+
 
 
 }
@@ -71,8 +75,9 @@ function setupStreams() {
 	
 
 	var streams = [
-    {title: 'My likes', url: '/me/favorites', randomize: true},
-    {title: 'Latest sounds', url: '/me/activities', randomize: true},
+    {title: 'My likes', url: '/me/favorites', randomize: true, params: {limit: 250}},
+    {title: 'My Next Stream', url: '/e1/me/stream', randomize: true, params: {limit: 50}},
+    {title: 'My friends likes', url: '/me/activities', randomize: true, params: {limit: 100}, parser: function(n) { return n.type === "favoriting" ? n.origin.track : undefined; }},
     {title: 'Shared to me', url: '/me/activities/tracks/exclusive', randomize: true},
     //{title: 'Boiler Room latest', url: '/users/752705/tracks'},
     {title: 'My sounds', url: '/me/tracks'}
@@ -94,21 +99,23 @@ function displayStream(){
   }
 
   streamTemplate = streamTemplate || Handlebars.compile($("#stream-template").html());
+  var standardParser = function(n){
+    return n.origin ? n.origin.track : n.track;
+  };
 
-	SC.get(streamData.url, function(data){
+	SC.get(streamData.url, streamData.params, function(data){
     // sometimes it's just track lists, sometimes acollections, e.g. in dashboards
-		streamData.tracks = data.collection ? $.map(data.collection, function(n){
-      return n.origin.track;
-    }) : data;
+		streamData.tracks = data.collection ? $.map(data.collection, streamData.parser || standardParser) : data;
     // shuffle if needed
     if (streamData.randomize) {
       streamData.tracks = streamData.tracks.sort(function() { return 0.5 - Math.random();});
     }
-
     // get a cover image
     streamData.coverImg = getCoverImage(streamData.tracks[0]);
+    // re-render the card
     $card.html(streamTemplate(streamData));
   });
+  // render the card placeholder
 	var $card = $('<li>').html(streamTemplate(streamData));
   $card.data('streamData', streamData);
 	$('#carte').append($card)
@@ -174,8 +181,7 @@ function skipSound(back) {
    
   } else if (currentSoundNum < currentStream.tracks.length - 1) {
     currentSoundNum ++;
-    playerStartCurrent();
-   
+    playerStartCurrent(); 
   }
 }
 
@@ -187,7 +193,13 @@ function updateStreamStatus() {
   // like button
   toggleIfLiked($stream.find('.like'), track);
   // change the window title so the tab looks better
-  document.title = ['▶ ', track.title].join();
+  updateTitle(true);
+};
+
+function updateTitle(playing) {
+  var track = currentStream.tracks[currentSoundNum];
+  // change the window title so the tab looks better
+  document.title = playing ? ['▶', track.title].join(' ') : 'SoundCarte';
 };
 
 function toggleIfLiked($node, track) {
@@ -204,13 +216,22 @@ function audioReady() {
   console.log('Audio ready', this, arguments);
 }
 
+function onPause() {
+  updateTitle(false);
+}
+
+function onResume() {
+  updateTitle(true);
+}
 
 function playerStartCurrent () {
   var track = currentStream.tracks[currentSoundNum];
   currenSoundInstance && currenSoundInstance.pause();
   SC.stream('/tracks/' + track.id, {
     onfinish: skipSound,
-    onplay: updateStreamStatus
+    onplay: updateStreamStatus,
+    onpause: onPause,
+    onresume: onResume
   }, function(sound){
     currenSoundInstance = sound;
     currenSoundInstance.play();
