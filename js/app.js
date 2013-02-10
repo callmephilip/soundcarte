@@ -86,13 +86,13 @@ function getGenre() {
   var g,
       weekday = (new Date()).getDay(),
       weekGenres = {
+        0: ['Folk', 'Folk Rock', 'Singer', 'Clasical', 'Soundtrack', 'Chillout'],
         1: ['Minimal', 'Instrumental', 'Folk-pop'],
         2: ['Jazz', 'Piano', 'Neoclassical', 'Lounge', 'Bossa Nova'],
         3: ['Rock', 'Indie', 'Beats', 'Alternative', 'Acoustic', 'Indie Folk'],
         4: ['Electro', 'Jazz House', 'Nu Jazz', 'Funk', 'Hip Hop'],
         5: ['House', 'Tech House', 'Techno', 'Trap', 'Trance', 'Juke', 'Dubstep'],
-        6: ['Ambient', 'RnB', 'Beats', 'Nu Swing', 'Pop'],
-        7: ['Folk', 'Folk Rock', 'Singer', 'Clasical', 'Soundtrack', 'Chillout']
+        6: ['Ambient', 'RnB', 'Beats', 'Nu Swing', 'Pop']
       };
 
   var choices = weekGenres[weekday];

@@ -5,6 +5,7 @@ Todo
 dont show streams that I haven't clicked for 2/3 times
 allow to follow people and show a followed user's strteam right away
 display genre of the curent track
+add Stream search
 add iPad/iPhone support
 
 DONE store SC authorization in LocalStorage
