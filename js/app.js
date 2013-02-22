@@ -15,7 +15,22 @@ define(["jquery","views/carte", "models/player"], function($,Carte,Player){
 			$(function() {
 
 
-				$("body").append(new Carte().render());
+				var daCarte = new Carte();
+
+				daCarte.on("play-stream", function(streamData){ selectStream(streamData); });
+				daCarte.on("toggle-stream", function(streamData){ selectStream(streamData); });
+				daCarte.on("skip", function(){ skipSound(); });
+				daCarte.on("back", function(){ skipSound(true); });
+				daCarte.on("like", function(e){ 
+					var track = Player.currentStream.tracks[Player.currentSoundNum];
+					SC.put('/e1/me/track_likes/' + track.id, function(data) {
+						console.log('saved to your likes!', data);
+					})
+					me.favoritesIds.push(track.id);
+					toggleIfLiked($(e.target), track);
+				});
+
+				$("body").append(daCarte.render());
 
 			  var storedToken = localStorage.getItem('SC.accessToken'); 
 
@@ -162,52 +177,12 @@ define(["jquery","views/carte", "models/player"], function($,Carte,Player){
 				$('.carte').append($card)
 			};
 
-			// play start
-			$(document.body).on('click', '.play', function(e) {
-			  e.preventDefault();
-			  var $stream = $(this).closest('li');
-			  var streamData = $stream.data().streamData;
-			  $stream
-			    .addClass('active')
-			    .siblings('li')
-			      .removeClass('active');
-			  selectStream(streamData);
-			});
-
-
-			$(document.body).on('click', '.active h3, .active .cover', function(e) {
-			  var streamData = $(this).closest('li').data().streamData;
-			  selectStream(streamData);
-			});
-
-
-			// skip button
-			$(document.body).on('click', '.skip', function(e) {
-			  e.preventDefault();
-			  skipSound();
-			});
-
-			$(document.body).on('click', '.back', function(e) {
-			  e.preventDefault();
-			  skipSound(true);
-			});
-
-			// like button
-			$(document.body).on('click', '.like', function(e) {
-			  e.preventDefault();
-			  var track = Player.currentStream.tracks[Player.currentSoundNum];
-			  SC.put('/e1/me/track_likes/' + track.id, function(data) {
-			    console.log('saved to your likes!', data);
-			  })
-			  me.favoritesIds.push(track.id);
-			  toggleIfLiked($(this), track);
-			});
 
 			$(window).on('keypress', function(event) {
 			  var key = event.keyCode;
 			  if (key === 32) {
 			    event.preventDefault();
-			    playerToggle();
+			    Player.playerToggle();
 			  } else if (key === 106) {
 			    skipSound();
 			  } else if (key === 107) {
