@@ -1,4 +1,4 @@
-define(["jquery"], function($){
+define(["jquery","views/carte", "models/player"], function($,Carte,Player){
 
 	return {
 
@@ -13,6 +13,9 @@ define(["jquery"], function($){
 
 
 			$(function() {
+
+
+				$("body").append(new Carte().render());
 
 			  var storedToken = localStorage.getItem('SC.accessToken'); 
 
@@ -32,6 +35,7 @@ define(["jquery"], function($){
 
 			function initCarte() {
 			  $('.login-form').hide();
+			  
 			  setupStreams();
 			  getUserData();
 			};
@@ -170,12 +174,6 @@ define(["jquery"], function($){
 			  selectStream(streamData);
 			});
 
-			// back to overview button
-			$(document.body).on('click', 'h1', function(e) {
-			  e.preventDefault();
-			  $(document.body).toggleClass('selected', false);
-			  $('#current-stream').text('');
-			});
 
 			$(document.body).on('click', '.active h3, .active .cover', function(e) {
 			  var streamData = $(this).closest('li').data().streamData;
@@ -197,7 +195,7 @@ define(["jquery"], function($){
 			// like button
 			$(document.body).on('click', '.like', function(e) {
 			  e.preventDefault();
-			  var track = currentStream.tracks[currentSoundNum];
+			  var track = Player.currentStream.tracks[Player.currentSoundNum];
 			  SC.put('/e1/me/track_likes/' + track.id, function(data) {
 			    console.log('saved to your likes!', data);
 			  })
@@ -228,33 +226,37 @@ define(["jquery"], function($){
 			};
 
 			// playlist order control
-			var currentStream, currentSoundNum;
+			
 			function selectStream(streamData) {
-			  if (currentStream === streamData) {
+			  if (Player.currentStream === streamData) {
 			    //playerToggle();
 			  } else {
-			    currentStream = streamData;
-			    currentSoundNum = 0;
-			    playerStartCurrent();
+			    Player.currentStream = streamData;
+			    Player.currentSoundNum = 0;
+
+			    //Player.playerStartCurrent();
+			  
+			  	Player.playerStartCurrent();
+
 			  }
 			  $(document.body).addClass('selected');
 			  $('#current-stream').text(streamData.title);
 			}
 
 			function skipSound(back) {
-			  if (back && currentSoundNum > 0) {
-			    currentSoundNum --;
-			    playerStartCurrent();
+			  if (back && Player.currentSoundNum > 0) {
+			    Player.currentSoundNum --;
+			    Player.playerStartCurrent();
 			   
-			  } else if (currentSoundNum < currentStream.tracks.length - 1) {
-			    currentSoundNum ++;
-			    playerStartCurrent(); 
+			  } else if (Player.currentSoundNum < Player.currentStream.tracks.length - 1) {
+			    Player.currentSoundNum ++;
+			    Player.playerStartCurrent(); 
 			  }
 			}
 
 			function updateStreamStatus() {
 			  var $stream = $('.carte li.active');
-			  var track = currentStream.tracks[currentSoundNum];
+			  var track = Player.currentStream.tracks[Player.currentSoundNum];
 			  // change the cover image
 			  $stream.find('.cover').attr('src', getCoverImage(track));
 			  $stream.find('.cover-big').attr('src', getCoverImage(track, 't500x500'));
@@ -273,7 +275,7 @@ define(["jquery"], function($){
 			};
 
 			function updateTitle(playing) {
-			  var track = currentStream.tracks[currentSoundNum];
+			  var track = Player.currentStream.tracks[Player.currentSoundNum];
 			  // change the window title so the tab looks better
 			  document.title = playing ? ['▶', track.title].join(' ') : 'SoundCarte';
 			};
@@ -289,40 +291,11 @@ define(["jquery"], function($){
 			};
 
 
-			// audio
-			var currenSoundInstance;
-			SC.whenStreamingReady(audioReady);
-
-			function audioReady() {
-			  console.log('Audio ready', this, arguments);
-			}
-
-			function onPause() {
-			  updateTitle(false);
-			}
-
-			function onResume() {
-			  updateTitle(true);
-			}
-
-			function playerStartCurrent () {
-			  var track = currentStream.tracks[currentSoundNum];
-			  currenSoundInstance && currenSoundInstance.pause();
-			  SC.stream('/tracks/' + track.id, {
-			    onfinish: skipSound,
-			    onplay: updateStreamStatus,
-			    onpause: onPause,
-			    onresume: onResume
-			  }, function(sound){
-			    currenSoundInstance = sound;
-			    currenSoundInstance.play();
-			  });
-			}
-
-
-			function playerToggle() {
-			  currenSoundInstance.togglePause();
-			};
+			Player.events
+				.on("finish", skipSound)
+				.on("play", updateStreamStatus)
+				.on("pause", function(){ updateTitle(false); })
+				.on("resume", function(){ updateTitle(true); });
 		}
 
 	};
