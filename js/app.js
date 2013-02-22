@@ -155,7 +155,7 @@ define(["jquery"], function($){
 			  // render the card placeholder
 				var $card = $('<li>').html(streamTemplate(streamData));
 			  $card.data('streamData', streamData);
-				$('#carte').append($card)
+				$('.carte').append($card)
 			};
 
 			// play start
@@ -253,7 +253,7 @@ define(["jquery"], function($){
 			}
 
 			function updateStreamStatus() {
-			  var $stream = $('#carte li.active');
+			  var $stream = $('.carte li.active');
 			  var track = currentStream.tracks[currentSoundNum];
 			  // change the cover image
 			  $stream.find('.cover').attr('src', getCoverImage(track));

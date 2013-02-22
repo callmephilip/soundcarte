@@ -70,21 +70,21 @@ li {
 	display: inline-block;
 }
 
-.selected #carte li {
+.selected .carte li {
 	display: none;
 }
 
-.selected #carte li.active {
+.selected .carte li.active {
 	display: block;
 }
 
-.selected #carte li.active .stream {
+.selected .carte li.active .stream {
 	height: 500px;
 	width: 980px;
 	float: none;
 }
 
-.selected #carte .cover-big {
+.selected .carte .cover-big {
 	display: block;
 }
 
